@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern To-Do List</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(to right, #f3f4f7, #e3e6ed);
+            transition: background 0.5s ease-in-out;
+        }
+
+        .container {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"] {
+            padding: 12px;
+            font-size: 15px;
+            flex: 1;
+            border: 1px solid #d1d1d1;
+            border-radius: 4px;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #7c8db0;
+        }
+
+        button {
+            padding: 12px 15px;
+            font-size: 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #e0e0e0;
+        }
+
+        #addTaskButton {
+            background-color: #5b88c5;
+            color: white;
+        }
+
+        #addTaskButton:hover {
+            background-color: #486e9f;
+        }
+
+        #deleteCheckedButton {
+            background-color: #c15252;
+            color: white;
+            margin-top: 15px;
+            width: 100%;
+            display: none; /* Hidden by default, shown when there are tasks */
+        }
+
+        #deleteCheckedButton:hover {
+            background-color: #9b3e3e;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 15px;
+        }
+
+        li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f8f9fb;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        li:hover {
+            transform: scale(1.02);
+        }
+
+        .task {
+            margin-left: 10px;
+            flex-grow: 1;
+            color: #333;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>To-Do List By TheFarawayDev</h1>
+        <div class="input-container">
+            <input type="text" id="taskInput" placeholder="Add a new task">
+            <button id="addTaskButton">Add Task</button>
+        </div>
+        <ul id="taskList"></ul>
+        <button id="deleteCheckedButton">Delete Checked Tasks</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const taskInput = document.getElementById('taskInput');
+            const addTaskButton = document.getElementById('addTaskButton');
+            const taskList = document.getElementById('taskList');
+            const deleteCheckedButton = document.getElementById('deleteCheckedButton');
+
+            // Load saved tasks from localStorage
+            const savedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            savedTasks.forEach(task => {
+                addTaskToDOM(task.text, task.completed);
+            });
+
+            // Show/hide the "Delete Checked Tasks" button
+            toggleDeleteCheckedButton();
+
+            // Add task button click handler
+            addTaskButton.addEventListener('click', () => {
+                const taskText = taskInput.value.trim();
+                if (taskText) {
+                    addTaskToDOM(taskText, false);
+                    saveTasks();
+                    taskInput.value = '';
+                }
+            });
+
+            // "Delete Checked Tasks" button click handler
+            deleteCheckedButton.addEventListener('click', () => {
+                const listItems = taskList.querySelectorAll('li');
+                listItems.forEach(item => {
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    if (checkbox.checked) {
+                        taskList.removeChild(item);
+                    }
+                });
+                saveTasks();
+                toggleDeleteCheckedButton();
+            });
+
+            // Function to add a task to the DOM
+            function addTaskToDOM(taskText, completed) {
+                const listItem = document.createElement('li');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = completed;
+                checkbox.addEventListener('change', () => {
+                    span.classList.toggle('completed');
+                    saveTasks();
+                    toggleDeleteCheckedButton();
+                });
+
+                const span = document.createElement('span');
+                span.textContent = taskText;
+                span.className = 'task';
+                if (completed) {
+                    span.classList.add('completed');
+                }
+
+                listItem.appendChild(checkbox);
+                listItem.appendChild(span);
+                taskList.appendChild(listItem);
+                toggleDeleteCheckedButton();
+            }
+
+            // Function to save tasks to localStorage
+            function saveTasks() {
+                const tasks = [];
+                const listItems = taskList.querySelectorAll('li');
+                listItems.forEach(item => {
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    const text = item.querySelector('.task').textContent;
+                    tasks.push({ text: text, completed: checkbox.checked });
+                });
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+
+            // Function to toggle the visibility of the "Delete Checked Tasks" button
+            function toggleDeleteCheckedButton() {
+                const listItems = taskList.querySelectorAll('li input[type="checkbox"]');
+                const anyChecked = Array.from(listItems).some(item => item.checked);
+                deleteCheckedButton.style.display = anyChecked ? 'block' : 'none';
+            }
+        });
+    </script>
+</body>
+</html>
